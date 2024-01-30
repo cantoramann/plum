@@ -1,13 +1,2 @@
-[package]
-name = "plum"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-anyhow = "1.0.79"
-kd-tree = "0.5.3"
-rust-bert = { version = "0.22.0", features = ["download-libtorch"] }
-serde = "1.0.196"
-typenum = "1.17.0"
+[workspace]
+members = ["plum", "plugins/plugins/obsidian"]

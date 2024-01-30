@@ -20,7 +20,7 @@ embeddings_test.txt
 .vscode/
 
 # User-installed plugins 
-/plugins/
+# /plugins/
 
 # .DS_Store
 .DS_Store

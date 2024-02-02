@@ -36,20 +36,34 @@ impl PlumCoordinator {
         };
     }
 
-    pub fn run(&self, package_name: String) {
+    pub fn install(&self, package_name: String) {
         let package_name = package_name.to_lowercase().replace(" ", "_");
 
         let mut package_names = Vec::new();
         fs::read("./plugins/plugins.config.plum")
-            .expect("Unable to read file")
+            .expect("Unable to read the configurations file")
             .lines()
             .for_each(|line| {
                 package_names.push(line.unwrap().to_string());
             });
 
-        if !package_names.contains(&package_name) {
-            println!("Package not found.");
-            return;
+        if package_names.contains(&package_name) {
+            print!("Package already installed");
+        } else {
+            println!("Package not found. Attempting to install the package.");
+            self.installer(package_name);
         }
+    }
+
+    fn installer(&self, package_name: String) {
+        let full_path = "https://plum-registry.sh/".to_string() + &package_name + ".zip";
+        println!("Pulling package: {}", full_path);
+
+        // experimental
+        let response = reqwest::blocking::get(&full_path).expect("Unable to get package");
+        let mut file = fs::File::create("./plugins/plugins/".to_string() + &package_name)
+            .expect("Unable to create file");
+        std::io::copy(&mut response.bytes().unwrap().as_ref(), &mut file)
+            .expect("Unable to copy file");
     }
 }

@@ -6,5 +6,5 @@ fn main() {
     obsidian_demo();
 
     let coord = coordinator::coordinator::PlumCoordinator::new();
-    coord.run("obsidian".to_string());
+    coord.install("obsidian".to_string());
 }

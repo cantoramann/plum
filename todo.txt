@@ -1,0 +1,13 @@
+INSTALLER
+Zip extracter test code
+A verifier to check before publishing a plugin
+
+UNIT TESTS
+- Unit tests for plugins.config.plum consistency (coordinator functions related)
+- Unit tests for config.plum consistency modifier and getter functions
+
+VECTOR DATABASE
+- See the cases of only implementing HNSW for ANN
+
+GRAPH
+- Possibly a small GNN network || using an LLM as the preprocessor for query preprocessing - bias

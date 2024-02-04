@@ -3,8 +3,8 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 use std::{error::Error, io::Write};
 
-pub fn vectorize(contents: Vec<String>) -> Result<(), Box<dyn Error>> {
-    print!("Vectorizing...");
+pub fn vectorize_obsidian_notes(contents: Vec<String>) -> Result<(), Box<dyn Error>> {
+    println!("Vectorizing Obsidian notes...");
 
     // initialize the model. This function is not used frequently. It is fine to call it multiple times.
     let model = SentenceEmbeddingsBuilder::remote(SentenceEmbeddingsModelType::AllMiniLmL12V2)
@@ -13,12 +13,12 @@ pub fn vectorize(contents: Vec<String>) -> Result<(), Box<dyn Error>> {
     let sentences = contents;
 
     let output = model.encode(&sentences)?;
-    print!(
+    println!(
         "Vectorization is complete. Vectorized {} documents",
         output.len()
     );
 
-    print!("Embedding size: {}", output[0].len());
+    println!("Embedding size: {}", output[0].len());
 
     // Create a root file named embeddings.txt
     let mut file = std::fs::File::create("./embeddings_test.txt")?;

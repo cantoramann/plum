@@ -1,7 +1,8 @@
-mod embeddings;
-mod obsidian;
-fn main() {
-    let mut aggregator = obsidian::aggregator::Aggregator::new();
+use crate::aggregator;
+use crate::vectorizer::vectorize_obsidian_notes;
+
+pub fn obsidian_demo() {
+    let mut aggregator = aggregator::Aggregator::new();
     aggregator.aggregate();
 
     let data: Vec<Vec<String>> = *aggregator.get_aggregator_data();
@@ -13,5 +14,5 @@ fn main() {
     }
 
     // vectorize the contents
-    let _ = embeddings::vectorizer::vectorize(contents);
+    let _ = vectorize_obsidian_notes(contents);
 }

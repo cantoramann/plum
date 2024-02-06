@@ -1,13 +1,12 @@
 mod coordinator;
 mod tools;
-use obsidian::core::obsidian_demo;
 
 fn main() {
-    // obsidian_demo();
+    let zip_file_path = String::from("obisidan.zip");
+    let move_loc = String::from("/Users/cantoraman/Documents/GitHub/plum/plugins/plugins/");
 
-    // let coord = coordinator::coordinator::PlumCoordinator::new();
-    // coord.install("obsidian".to_string());
-
-    // Testing the installer
-    let _ = tools::compressor::decompress_package(String::from("obsidian.zip"));
+    match tools::compressor::decompress_and_move_package(zip_file_path, move_loc) {
+        Ok(_) => println!("Decompression completed successfully."),
+        Err(e) => println!("Failed to decompress: {}", e),
+    }
 }

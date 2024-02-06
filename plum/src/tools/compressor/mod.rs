@@ -1,37 +1,53 @@
-use std::{error::Error, fs::File, io, path::Path};
+use flate2::read::GzDecoder;
+use std::io::prelude::*;
+use std::{
+    error::Error,
+    fs::{self, File},
+    io,
+    path::Path,
+};
+
+use zip_dir::zip_dir;
+
+use reqwest::blocking::Client;
 use zip::ZipArchive;
 
-pub fn decompress_package(package_loc: String) -> Result<(), Box<dyn Error>> {
-    let zip_file_path = Path::new("obsidian.zip");
-    let zip_file = File::open(zip_file_path)?;
+pub fn decompress_and_move_package(
+    zip_file_path: String,
+    move_loc: String,
+) -> Result<(), Box<dyn Error>> {
+    println!("Decompressing package {}", zip_file_path);
+    println!(" to {}", move_loc);
+    let file = File::open(zip_file_path).expect("File not found");
+    let mut archive = ZipArchive::new(file)?;
 
-    let mut archive = ZipArchive::new(zip_file)?;
-    let extraction_dir = Path::new("plugins/plugins");
-
-    // Create the directory if it does not exist.
-    if !extraction_dir.exists() {
-        std::fs::create_dir(extraction_dir)?;
-    }
-
-    // Iterate through the files in the ZIP archive.
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        let file_name = file.name().to_owned();
+        let outpath = match file.enclosed_name() {
+            Some(path) => path.to_owned(),
+            None => continue,
+        };
 
-        // Create the path to the extracted file in the destination directory.
-        let target_path = extraction_dir.join(file_name);
+        let outpath = match outpath.strip_prefix("zip_test/") {
+            Ok(path) => path,
+            Err(_) => &outpath,
+        };
 
-        // Create the destination directory if it does not exist.
-        if let Some(parent_dir) = target_path.parent() {
-            std::fs::create_dir_all(parent_dir)?;
+        let outpath = move_loc.clone() + outpath.to_str().unwrap();
+
+        if (&*file.name()).ends_with('/') {
+            fs::create_dir_all(&outpath)?;
+        } else {
+            // error: no method named `parent` found for struct `String` in the current scope method not found in `String`
+            if let Some(p) = Path::new(&outpath).parent() {
+                if !p.exists() {
+                    fs::create_dir_all(&p)?;
+                }
+            }
+            let mut outfile = File::create(&outpath)?;
+            io::copy(&mut file, &mut outfile)?;
         }
-
-        let mut output_file = File::create(&target_path)?;
-
-        // Read the contents of the file from the ZIP archive and write them to the destination file.
-        io::copy(&mut file, &mut output_file)?;
     }
 
-    println!("Files successfully extracted to {:?}", extraction_dir);
     Ok(())
 }

@@ -49,3 +49,10 @@ fn installer_precheck(package_name: String) -> bool {
         return true;
     }
 }
+
+fn check_plugins_config() {
+    if !Path::new("./plugins/plugins.config.plum").exists() {
+        fs::write("./plugins/plugins.config.plum", "")
+            .expect("Unable to create plugins.config.plum file in plugins directory");
+    }
+}

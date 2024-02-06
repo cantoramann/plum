@@ -1,2 +1,2 @@
 [workspace]
-members = ["plum", "plugins/plugins/obsidian"]
+members = ["plum"]

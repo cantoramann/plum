@@ -1,5 +1,6 @@
 use flate2::read::GzDecoder;
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::{
     error::Error,
     fs::{self, File},
@@ -13,12 +14,15 @@ use reqwest::blocking::Client;
 use zip::ZipArchive;
 
 pub fn decompress_and_move_package(
-    zip_file_path: String,
-    move_loc: String,
+    zip_file_path: PathBuf,
+    move_loc: PathBuf,
 ) -> Result<(), Box<dyn Error>> {
-    println!("Decompressing package {}", zip_file_path);
-    println!(" to {}", move_loc);
-    let file = File::open(zip_file_path).expect("File not found");
+    println!(
+        "Decompressing and moving package from: to:  {} {}",
+        zip_file_path.to_str().unwrap(),
+        move_loc.to_str().unwrap()
+    );
+    let file = File::open(&zip_file_path).expect("File not found using the file path");
     let mut archive = ZipArchive::new(file)?;
 
     for i in 0..archive.len() {
@@ -33,7 +37,7 @@ pub fn decompress_and_move_package(
             Err(_) => &outpath,
         };
 
-        let outpath = move_loc.clone() + outpath.to_str().unwrap();
+        let outpath = move_loc.clone().to_str().unwrap().to_owned() + outpath.to_str().unwrap();
 
         if (&*file.name()).ends_with('/') {
             fs::create_dir_all(&outpath)?;
@@ -50,4 +54,23 @@ pub fn decompress_and_move_package(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn decompress_valid_file() {
+        let zip_file_path = PathBuf::from("/Users/cantoraman/Documents/GitHub/plum/obsidian.zip");
+        let move_loc = PathBuf::from("/Users/cantoraman/Documents/GitHub/plum/plugins/plugins/");
+
+        match decompress_and_move_package(zip_file_path, move_loc) {
+            Ok(_) => println!("Decompression completed successfully."),
+            Err(e) => println!("Failed to decompress: {}", e),
+        }
+    }
 }

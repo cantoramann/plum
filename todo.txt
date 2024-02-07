@@ -10,4 +10,4 @@ VECTOR DATABASE
 - See the cases of only implementing HNSW for ANN
 
 GRAPH
-- Possibly a small GNN network || using an LLM as the preprocessor for query preprocessing - bias
+- Possibly a small GNN || using an LLM as the preprocessor for query preprocessing - bias

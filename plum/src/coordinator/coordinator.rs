@@ -1,87 +1,103 @@
-use std::{
-    fs,
-    io::{self, BufRead, Write},
-    path::Path,
-};
+// use std::{
+//     env, fs,
+//     io::{self, BufRead, Write},
+//     path::Path,
+// };
 
-pub(crate) struct PlumCoordinator {
-    status: String,
-}
+// pub(crate) struct PlumCoordinator {
+//     status: String,
+// }
 
-impl PlumCoordinator {
-    pub fn new() -> Self {
-        // check if the coordinator file ./config/config.plum exists
-        if !Path::new("./config/config.plum").exists() {
-            // if it doesn't exist, create it
-            println!("Couldn't find config file. Creating one...");
-            // if ./config/ doesn't exist, create it and create the config.plum file
-            if !Path::new("./config/").exists() {
-                fs::create_dir("./config/").expect("Unable to create config directory");
-            }
+// pub fn install_package(package_name: String) {
+//     let path: std::path::PathBuf = env::current_dir().unwrap();
+//     println!(
+//         "Attempting to add {} to the project root: {:?}",
+//         package_name, path
+//     );
 
-            fs::write("./config/config.plum", "init_ok").expect("Unable to create config file");
-            println!("Config file created.");
+//     match tools::compressor::decompress_and_move_package(
+//         path.clone().join("obsidian.zip"),
+//         path.clone().join("plugins/plugins/"),
+//     ) {
+//         Ok(_) => println!("Decompression completed successfully."),
+//         Err(e) => println!("Failed to decompress: {}", e),
+//     }
+// }
 
-            // remove the ./plugins/plugins directory if it exists
-            if Path::new("./plugins/").exists() {
-                fs::remove_dir_all("./plugins/").expect("Unable to delete plugins directory");
-            }
+// impl PlumCoordinator {
+//     pub fn new() -> Self {
+//         // check if the coordinator file ./config/config.plum exists
+//         if !Path::new("./config/config.plum").exists() {
+//             // if it doesn't exist, create it
+//             println!("Couldn't find config file. Creating one...");
+//             // if ./config/ doesn't exist, create it and create the config.plum file
+//             if !Path::new("./config/").exists() {
+//                 fs::create_dir("./config/").expect("Unable to create config directory");
+//             }
 
-            // create the ./plugins/plugins directory. Create both at once if they don't exist.
-            fs::create_dir_all("./plugins/plugins/").expect("Unable to create plugins directory");
-            fs::write("./plugins/plugins.config.plum", "")
-                .expect("Unable to create plugins.config.plum file in plugins directory");
-        } else {
-            println!("Configuration found.")
-        }
+//             fs::write("./config/config.plum", "init_ok").expect("Unable to create config file");
+//             println!("Config file created.");
 
-        return PlumCoordinator {
-            status: "ok".to_string(),
-        };
-    }
+//             // remove the ./plugins/plugins directory if it exists
+//             if Path::new("./plugins/").exists() {
+//                 fs::remove_dir_all("./plugins/").expect("Unable to delete plugins directory");
+//             }
 
-    pub fn install(&self, package_name: String) {
-        let package_name = package_name.to_lowercase().replace(" ", "_");
+//             // create the ./plugins/plugins directory. Create both at once if they don't exist.
+//             fs::create_dir_all("./plugins/plugins/").expect("Unable to create plugins directory");
+//             fs::write("./plugins/plugins.config.plum", "")
+//                 .expect("Unable to create plugins.config.plum file in plugins directory");
+//         } else {
+//             println!("Configuration found.")
+//         }
 
-        let mut package_names = Vec::new();
-        fs::read("./plugins/plugins.config.plum")
-            .expect("Unable to read the configurations file")
-            .lines()
-            .for_each(|line| {
-                package_names.push(line.unwrap().to_string());
-            });
+//         return PlumCoordinator {
+//             status: "ok".to_string(),
+//         };
+//     }
 
-        if package_names.contains(&package_name) {
-            print!("Package already installed");
-        } else {
-            println!("Package not found. Attempting to install the package.");
-            self.installer(package_name);
-        }
-    }
+//     pub fn install(&self, package_name: String) {
+//         let package_name = package_name.to_lowercase().replace(" ", "_");
 
-    fn installer(&self, package_name: String) {}
+//         let mut package_names = Vec::new();
+//         fs::read("./plugins/plugins.config.plum")
+//             .expect("Unable to read the configurations file")
+//             .lines()
+//             .for_each(|line| {
+//                 package_names.push(line.unwrap().to_string());
+//             });
 
-    fn cargo_config_modifier(&self, package_name: String) -> io::Result<()> {
-        let cargo_toml_path = "Cargo.toml"; // Adjust the path as necessary for your environment
-        let mut contents = fs::read_to_string("Cargo.toml".to_string())?;
+//         if package_names.contains(&package_name) {
+//             print!("Package already installed");
+//         } else {
+//             println!("Package not found. Attempting to install the package.");
+//             self.installer(package_name);
+//         }
+//     }
 
-        if let Some(pos) = contents.rfind('\"') {
-            contents.truncate(pos + 1);
+//     fn installer(&self, package_name: String) {}
 
-            let formatted_package_name = format!(", \"plugins/plugins/{}\"]", package_name);
-            contents.push_str(&formatted_package_name);
-            let mut file = fs::OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .open(cargo_toml_path)?;
+//     fn cargo_config_modifier(&self, package_name: String) -> io::Result<()> {
+//         let cargo_toml_path = "Cargo.toml"; // Adjust the path as necessary for your environment
+//         let mut contents = fs::read_to_string("Cargo.toml".to_string())?;
 
-            file.write_all(contents.as_bytes())?;
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                "Could not find the end of members list in Cargo.toml",
-            ));
-        }
-        Ok(())
-    }
-}
+//         if let Some(pos) = contents.rfind('\"') {
+//             contents.truncate(pos + 1);
+
+//             let formatted_package_name = format!(", \"plugins/plugins/{}\"]", package_name);
+//             contents.push_str(&formatted_package_name);
+//             let mut file = fs::OpenOptions::new()
+//                 .write(true)
+//                 .truncate(true)
+//                 .open(cargo_toml_path)?;
+
+//             file.write_all(contents.as_bytes())?;
+//         } else {
+//             return Err(io::Error::new(
+//                 io::ErrorKind::Other,
+//                 "Could not find the end of members list in Cargo.toml",
+//             ));
+//         }
+//         Ok(())
+//     }
+// }

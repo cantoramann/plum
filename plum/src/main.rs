@@ -1,13 +1,16 @@
-use std::path::PathBuf;
+use std::env;
 
 mod coordinator;
 mod tools;
 
 fn main() {
-    let zip_file_path = PathBuf::from("obisidan.zip");
-    let move_loc = PathBuf::from("/Users/cantoraman/Documents/GitHub/plum/plugins/plugins/");
+    let path: std::path::PathBuf = env::current_dir().unwrap();
+    println!("The current directory is: {:?}", path);
 
-    match tools::compressor::decompress_and_move_package(zip_file_path, move_loc) {
+    match tools::compressor::decompress_and_move_package(
+        path.clone().join("obsidian.zip"),
+        path.clone().join("plugins/plugins/"),
+    ) {
         Ok(_) => println!("Decompression completed successfully."),
         Err(e) => println!("Failed to decompress: {}", e),
     }

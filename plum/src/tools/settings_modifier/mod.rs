@@ -1,5 +1,5 @@
 use std::fs::{File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Read, Result, Seek, SeekFrom, Write};
+use std::io::{self, BufRead, BufReader, BufWriter, Read, Result, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::str;
 
@@ -16,59 +16,83 @@ struct CargoFileModifierArgs<'a> {
     operation: CargoOperationType<'a>,
 }
 
-enum FileOrBuffer<'a> {
+enum BorrFileOrBorrBuffer<'a> {
     File(&'a File),
     Buffer(BufReader<&'a File>),
 }
 
 fn parse_cargo_members<'a>(
-    reader_opts: FileOrBuffer<'a>,
+    reader_opts: BorrFileOrBorrBuffer<'a>,
     pattern: &str,
-) -> Result<(Vec<String>, usize, usize)> {
+) -> Result<(Vec<String>, usize)> {
     let mut reader = match reader_opts {
-        FileOrBuffer::File(file) => BufReader::new(file),
-        FileOrBuffer::Buffer(buffer) => buffer,
+        BorrFileOrBorrBuffer::File(file) => BufReader::new(file),
+        BorrFileOrBorrBuffer::Buffer(buffer) => buffer,
     };
 
     // Convert the pattern to bytes for comparison
     let pattern_bytes = pattern.as_bytes();
-    let mut buffer = Vec::new();
 
+    let mut buffer = Vec::new();
     // Read the entire content into a buffer
     reader.read_to_end(&mut buffer)?;
 
-    // Search for the pattern in the buffer
+    // Search for the pattern, assuming it includes the pattern
     if let Some(start_index) = buffer
-        .windows(pattern_bytes.len())
-        .position(|window| window == pattern_bytes)
+        .windows(pattern.as_bytes().len())
+        .position(|window| window == pattern.as_bytes())
     {
-        // Find the start of the members list after '='
-        if let Some(start_of_members) = buffer[start_index..].iter().position(|&b| b == b'=') {
-            let members_start = start_index + start_of_members + 2; // Skip '=' and the space
-                                                                    // Find the end of the members list
-            if let Some(end_of_members) = buffer[members_start..].iter().position(|&b| b == b']') {
-                let members_end = members_start + end_of_members; // Include ']' in the output
-                let members_str = str::from_utf8(&buffer[members_start..=members_end])
-                    .expect("Failed to convert bytes to string");
+        let members_start = start_index + pattern.len();
 
-                let members: Vec<String> = members_str
-                    .trim_matches(|p: char| p == '[' || p == ']')
-                    .split(',')
-                    .map(|s| s.trim().trim_matches('"').to_string())
-                    .collect();
+        // Assuming the array ends with ']', find the end of the array
+        let members_end = buffer[members_start..]
+            .iter()
+            .position(|&b| b == b']')
+            .unwrap_or_else(|| buffer.len() - members_start)
+            + members_start;
+        let members_str = str::from_utf8(&buffer[members_start..members_end])
+            .expect("Failed to convert bytes to string");
 
-                return Ok((members, members_start, members_end));
-            }
-        }
+        let members: Vec<String> = members_str
+            .trim_matches(|p: char| p == '[' || p == ']')
+            .split(',')
+            .filter_map(|s| {
+                let member = s.trim().trim_matches('"');
+                if !member.is_empty() {
+                    Some(member.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        return Ok((members, members_start));
     }
+
     Err(io::Error::new(io::ErrorKind::NotFound, "Pattern not found"))
 }
 
-fn add_cargo_member(writer_opts: FileOrBuffer, string: &str) {}
+fn write_array_from_start(file: &mut File, start: usize, members: &Vec<String>) -> io::Result<()> {
+    let mut writer = BufWriter::new(file);
 
-pub fn accept_update_cargo(args: CargoFileModifierArgs) {
-    // Check if the file exists
+    // Prepare to write from the specified start position
+    writer.seek(SeekFrom::Start(start as u64))?;
 
+    // Stringify and write the updated members list
+    let members_string = members
+        .into_iter()
+        .map(|name| format!("\"{}\"", name))
+        .collect::<Vec<String>>()
+        .join(", ");
+    let array_string = format!("[{}]", members_string);
+
+    writer.write_all(array_string.as_bytes())?;
+    writer.flush()?; // Ensure all data is written
+
+    Ok(())
+}
+
+pub fn accept_update_cargo(args: CargoFileModifierArgs) -> io::Result<()> {
     // path is the project root
     let mut path = String::from(args.filepath);
     if args.filepath.is_empty() {
@@ -86,7 +110,7 @@ pub fn accept_update_cargo(args: CargoFileModifierArgs) {
         panic!("Could not locate the specified Cargo file in the arguments. Aborting.");
     }
 
-    let file = OpenOptions::new()
+    let mut file = OpenOptions::new()
         .read(true)
         .write(true)
         .open(path)
@@ -94,26 +118,40 @@ pub fn accept_update_cargo(args: CargoFileModifierArgs) {
 
     match args.operation {
         CargoOperationType::AddMemberAsPackage { package_name } => {
-            let parse_res = parse_cargo_members(FileOrBuffer::File(&file), "members");
-            if let Ok((members, start, end)) = parse_res {
+            let read_res = parse_cargo_members(BorrFileOrBorrBuffer::File(&file), "members");
+            if let Ok((members, start)) = read_res {
                 if members.contains(&package_name.to_string()) {
                     println!("Package already exists in the members list. Aborting.");
-                    return;
+                    return Ok(());
                 }
-                let mut members = members;
-                members.push(package_name.to_string());
-                let mut file = OpenOptions::new()
-                    .write(true)
-                    .open(path)
-                    .expect("Failed to open the file for writing");
-                file.seek(SeekFrom::Start(start as u64)).unwrap();
-                file.write_all(b"members = [").unwrap();
-                for member in members {
-                    file.write_all(format!("\"{}\", ", member).as_bytes())
-                        .unwrap();
-                }
-                file.write_all(b"]").unwrap();
+
+                let _write_res = write_array_from_start(&mut file, start, &members);
             }
         }
+    }
+
+    Ok(())
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_cargo_members() {
+        let file = File::open("Cargo.toml").unwrap();
+        let members = parse_cargo_members(BorrFileOrBorrBuffer::File(&file), "members");
+        assert!(members.is_ok());
+    }
+
+    #[test]
+    fn test_write_array_from_start() {
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open("Cargo.toml")
+            .unwrap();
+        let members = vec!["test".to_string(), "test2".to_string()];
+        let write_res = write_array_from_start(&mut file, 0, &members);
+        assert!(write_res.is_ok());
     }
 }

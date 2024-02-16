@@ -1,22 +1,41 @@
-use crate::checks;
+use crate::configuration;
 use reqwest::blocking::Client;
+use std::fs;
+use std::process::Command;
 use std::{
     error::Error,
     fs::File,
     io::{self, Write},
 };
 
-pub fn add_plugin(path: String, filename: String) -> Result<(), Box<dyn Error>> {
-    let workspace_root = checks::find_workspace_root();
+/*
 
-    let mut resp = Client::new().get(&path).send()?;
-    let mut out = File::create(filename)?;
-    io::copy(&mut resp, &mut out)?;
+* Installs the plugin from the given path to the plugins directory.
+*/
+pub fn add_plugin(remote_path: &str, filename: String) -> Result<(), Box<dyn Error>> {
+    // new
+    let plugins_path = configuration::find_workspace_root()
+        .join("plugins")
+        .join("plugins");
+
+    // Ensure the plugins directory exists.
+    fs::create_dir_all(&plugins_path)?;
+
+    // Combine the directory path with the filename to get the target path.
+    let file_path: std::path::PathBuf = plugins_path.join(&filename);
+
+    // new command to get into plugins/plugins directory
+    let _ = Command::new("curl")
+        .arg(remote_path)
+        .current_dir(plugins_path)
+        .output()
+        .unwrap();
+
     Ok(())
 }
 
 pub fn tidy_plugins() {
-    let workspace_root = checks::find_workspace_root();
+    let workspace_root = configuration::find_workspace_root();
     let plugins_dir = workspace_root.join("plugins").join("plugins");
 
     // clear __MACOSX dir

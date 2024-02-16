@@ -66,6 +66,5 @@ fn array_diff<T: PartialEq + Clone>(vec1: Vec<T>, vec2: Vec<T>) -> Vec<T> {
             diff.push(item.clone());
         }
     }
-
     diff
 }

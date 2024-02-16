@@ -1,6 +1,8 @@
 use std::env;
 use std::fs;
 use std::path::Path;
+mod checks;
+mod installer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

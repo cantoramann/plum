@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use rust_bert::pipelines::sentence_embeddings::{
     SentenceEmbeddingsBuilder, SentenceEmbeddingsModelType,
 };

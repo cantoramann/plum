@@ -1,2 +1,3 @@
 [workspace]
-members = ["plum"]
+members = ["core", "utils", "plugins/plugins/obsidian"]
+exclude = ["cli"]

@@ -1,3 +1,6 @@
+/*
+* CHECK FOR UNNEEDEED PARTS
+*/
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, BufWriter, Read, Result, Seek, SeekFrom, Write};
 use std::path::Path;

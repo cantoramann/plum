@@ -1,6 +1,4 @@
 use std::env;
-
-mod coordinator;
 mod tools;
 
 fn main() {

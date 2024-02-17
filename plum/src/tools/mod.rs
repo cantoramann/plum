@@ -1,5 +1,7 @@
 pub mod compressor;
-pub mod coordinator;
 pub mod health;
-pub mod package_installer;
-mod settings_modifier;
+pub mod vector;
+
+pub use compressor::decompress_and_move_package;
+pub use health::{find_workspace_root, is_workspace_configured};
+pub use vector::VectorDb;

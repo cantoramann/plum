@@ -97,3 +97,59 @@ pub fn tidy_plugins() {
         config_file.write_all(b"\n").unwrap();
     }
 }
+
+mod tests {
+
+    use std::env;
+    use std::fs;
+    use tempfile::tempdir;
+
+    use super::*;
+
+    // #[test]
+    // fn test_find_workspace_root() {
+    //     // go back
+    //     let current_path = current_dir().unwrap();
+    //     // set the current path to the terminal
+    //     let setdir_result = set_current_dir(&current_path);
+
+    //     // now run the test
+    //     let workspace_root = find_workspace_root();
+    //     print!("{:?}", workspace_root);
+
+    //     // let workspace_root = find_workspace_root();
+    //     // print!("{:?}", workspace_root);
+    //     // assert!(workspace_root.exists());
+    //     // // assert!(workspace_root.join(".plumconfig").exists());
+    //     // assert!(workspace_root.join("Cargo.toml").exists());
+    // }
+    #[test]
+    fn test_find_workspace_root() {
+        // Step 1: Set up the mock environment
+        let workspace_parent_dir = tempdir().expect("failed to create temp dir");
+
+        // create a cargo project from this directory using Command
+        let _ = Command::new("cargo")
+            .args(["new", "test_project"])
+            .current_dir(&workspace_parent_dir)
+            .output()
+            .unwrap();
+
+        // get into the test_project directory
+        let workspace_dir = workspace_parent_dir.path().join("test_project");
+
+        // create a .plumconfig file
+        fs::File::create(workspace_dir.join(".plumconfig")).expect("failed to create .plumconfig");
+
+        // Step 2: Change the current directory to the mock workspace
+        assert!(env::set_current_dir(&workspace_dir).is_ok());
+
+        // Step 3: Run the function under test
+        let found_root = find_workspace_root();
+
+        // Step 4: Assert the expected outcome
+        assert_eq!(found_root, workspace_dir);
+
+        // Step 5: Clean up happens automatically when `temp_dir` goes out of scope
+    }
+}

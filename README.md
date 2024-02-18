@@ -9,4 +9,6 @@ Plum has two main objectives:
 - Speeding up the building process of local Rust projects with fully customizable plugins.
 - Fostering the learning process of Rust, especially in the context of building local agents.
 
+Self notes: deleting the CLI package does not affect the workspace Cargo.toml
+
 This project is currently a work in progress. More details soon.

@@ -6,5 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lazy_static = "1.4.0"
 petgraph = "0.6.4"
+rust-bert = { version = "0.22.0", features = ["download-libtorch"] }
 sled = "0.34.7"

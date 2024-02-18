@@ -13,6 +13,18 @@ use std::{
 * Installs the plugin from the given path to the plugins directory.
 */
 pub fn add_plugin(remote_path: &str, filename: String) -> Result<(), Box<dyn Error>> {
+    // a map of filename to url
+    let mut plugin_map = std::collections::HashMap::new();
+    plugin_map.insert(
+        "obsidian".to_string(),
+        workspace_config::find_workspace_root().join("obsidian.zip"),
+    );
+
+    // if the filename is not in the map, return an error
+    if !plugin_map.contains_key(&filename) {
+        return Err("Plugin not found".into());
+    }
+
     // new
     let plugins_dir = workspace_config::find_plugins_dir();
 

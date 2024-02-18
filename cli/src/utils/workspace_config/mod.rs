@@ -106,23 +106,6 @@ mod tests {
 
     use super::*;
 
-    // #[test]
-    // fn test_find_workspace_root() {
-    //     // go back
-    //     let current_path = current_dir().unwrap();
-    //     // set the current path to the terminal
-    //     let setdir_result = set_current_dir(&current_path);
-
-    //     // now run the test
-    //     let workspace_root = find_workspace_root();
-    //     print!("{:?}", workspace_root);
-
-    //     // let workspace_root = find_workspace_root();
-    //     // print!("{:?}", workspace_root);
-    //     // assert!(workspace_root.exists());
-    //     // // assert!(workspace_root.join(".plumconfig").exists());
-    //     // assert!(workspace_root.join("Cargo.toml").exists());
-    // }
     #[test]
     fn test_find_workspace_root() {
         // Step 1: Set up the mock environment

@@ -1,6 +1,8 @@
 use std::env;
 use std::fs;
 use std::path::Path;
+
+use crate::utils::handlers;
 mod health;
 mod utils;
 
@@ -51,7 +53,8 @@ fn main() {
                 return;
             }
             let package_name = &args[2];
-            // Check for .plumconfig and add package
+            // todo :: check for .plumconfig and add package
+            handlers::install_package_handler(package_name.to_string());
             println!("Package '{}' added.", package_name);
         }
         "remove" => {

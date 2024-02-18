@@ -11,6 +11,12 @@ pub fn decompress_package_in_dir(path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let file = File::open(&path).expect("File not found using the file path.");
     let mut archive = ZipArchive::new(file)?;
 
+    println!(
+        "Decompressing the package in {}",
+        move_loc.to_str().unwrap()
+    );
+    println!("Archive len: {}", archive.len());
+
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         let outpath = match file.enclosed_name() {

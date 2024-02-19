@@ -11,6 +11,7 @@ use std::{
 pub fn find_workspace_root() -> PathBuf {
     // Get the current directory.
     let current_dir = current_dir().unwrap();
+    println!("Current directory: {:?}", current_dir);
 
     // Find the workspace root using `cargo metadata`.
     let output = Command::new("cargo")

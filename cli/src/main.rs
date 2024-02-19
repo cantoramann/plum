@@ -55,7 +55,6 @@ fn main() {
             let package_name = &args[2];
             // todo :: check for .plumconfig and add package
             handlers::install_package_handler(package_name.to_string());
-            println!("Package '{}' added.", package_name);
         }
         "remove" => {
             if args.len() != 3 {

@@ -2,6 +2,7 @@ use crate::utils::compression::decompress_package_in_dir;
 use crate::utils::workspace_config;
 use reqwest::blocking::Client;
 use std::fs;
+use std::path::Path;
 use std::process::Command;
 use std::{
     error::Error,
@@ -30,6 +31,7 @@ pub fn add_plugin(remote_path: &str, filename: String) -> Result<(), Box<dyn Err
 
     // new
     let plugins_dir = workspace_config::find_plugins_dir();
+    let plugins_path = plugins_dir.join(&filename);
 
     // // Ensure the plugins directory exists.
     // fs::create_dir_all(&plugins_dir)?;
@@ -40,8 +42,16 @@ pub fn add_plugin(remote_path: &str, filename: String) -> Result<(), Box<dyn Err
     // new command to get into plugins/plugins directory
     println!("plugins_dir: {:?}", plugins_dir);
 
-    let _ =
-        decompress_package_in_dir(&workspace_config::find_workspace_root().join("obsidian.zip"));
+    let compressed_file_name = String::from(&filename).to_owned() + &".zip".to_owned();
+    let compressed_file_path = workspace_config::find_workspace_root().join(&compressed_file_name);
+    let uncompressed_file_path = workspace_config::find_workspace_root().join(&filename);
+    let _ = decompress_package_in_dir(&compressed_file_path);
+
+    // move the file to the plugins directory
+    fs::rename(&uncompressed_file_path, &plugins_path)?;
+
+    // delete __MACOSX directory
+    // todo :: after remote path is implemented
 
     Ok(())
 }

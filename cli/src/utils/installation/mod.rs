@@ -1,14 +1,7 @@
 use crate::utils::compression::decompress_package_in_dir;
 use crate::utils::workspace_config;
-use reqwest::blocking::Client;
+use std::error::Error;
 use std::fs;
-use std::path::Path;
-use std::process::Command;
-use std::{
-    error::Error,
-    fs::File,
-    io::{self, Write},
-};
 
 /*
 
@@ -17,6 +10,7 @@ use std::{
 pub fn add_plugin(remote_path: &str, filename: String) -> Result<(), Box<dyn Error>> {
     println!("Installing plugin from {}", remote_path);
     println!("Installing plugin {}", filename);
+
     // a map of filename to url
     let mut plugin_map = std::collections::HashMap::new();
     plugin_map.insert(

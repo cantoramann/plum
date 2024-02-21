@@ -1,2 +1,2 @@
 [workspace]
-members = ["core", "utils"]
+members = ["core", "utils", "plugins/plugins/obsidian"]
